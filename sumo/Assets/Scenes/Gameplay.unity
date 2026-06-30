@@ -375,8 +375,8 @@ MonoBehaviour:
   velocidade: 5
   jogador1: 1
   inimigo: {fileID: 2095201874}
-  forcaEmpurrao: 10
-  distanciaMaxima: 5
+  forcaEmpurrao: 25
+  distanciaMaxima: 2
 --- !u!58 &1705643152
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -549,8 +549,8 @@ MonoBehaviour:
   velocidade: 5
   jogador1: 0
   inimigo: {fileID: 1705643151}
-  forcaEmpurrao: 10
-  distanciaMaxima: 5
+  forcaEmpurrao: 25
+  distanciaMaxima: 2
 --- !u!50 &2095201875
 Rigidbody2D:
   serializedVersion: 5

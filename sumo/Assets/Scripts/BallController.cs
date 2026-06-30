@@ -9,10 +9,10 @@ public class BallController : MonoBehaviour
     [Header("Jogador")]
     public bool jogador1 = true;
 
-    [Header("Combate")]
+    [Header("Empurrão")]
     public BallController inimigo;
-    public float forcaEmpurrao = 10f;
-    public float distanciaMaxima = 5f;
+    public float forcaEmpurrao = 15f;
+    public float distanciaMaxima = 3f;
 
     private PlayerControls controls;
     private Rigidbody2D rb;
@@ -70,19 +70,21 @@ public class BallController : MonoBehaviour
 
         float distancia = Vector2.Distance(transform.position, inimigo.transform.position);
 
-        // Só empurra se estiver perto
+        // Está muito longe
         if (distancia > distanciaMaxima)
             return;
 
-        // Direção para empurrar o inimigo
+        // Direção do empurrão
         Vector2 direcao = (inimigo.transform.position - transform.position).normalized;
 
         // Quanto mais perto, maior a força
-        float intensidade = (distanciaMaxima - distancia) / distanciaMaxima;
+        float intensidade = 1f - (distancia / distanciaMaxima);
+
+        float forcaFinal = forcaEmpurrao * intensidade;
 
         Rigidbody2D rbInimigo = inimigo.GetComponent<Rigidbody2D>();
 
-        rbInimigo.AddForce(direcao * forcaEmpurrao * intensidade, ForceMode2D.Impulse);
+        rbInimigo.AddForce(direcao * forcaFinal, ForceMode2D.Impulse);
 
         Debug.Log(jogador1 ? "Player 1 empurrou!" : "Player 2 empurrou!");
     }

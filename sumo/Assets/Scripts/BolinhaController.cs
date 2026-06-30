@@ -4,14 +4,21 @@ using UnityEngine.InputSystem;
 public class BolinhaController : MonoBehaviour
 {
     [Header("Configurações Base")]
-    public BolinhaData dadosBase; // O Scriptable Object com os status
-    public int idJogador; // 1 para J1, 2 para J2
+    public BolinhaData dadosBase;
+    public int idJogador;
+
+    [Header("Alvo")]
+    public BolinhaController inimigo; // Referência para a outra bolinha
 
     private Rigidbody2D rb;
     private Vector2 inputMovimento;
     private float velocidadeAtual;
+    private float forcaEmpurraoAtual;
 
-    // Referência para a classe de controles gerada pelo Input System
+    [Header("Mecânica de Cooldown")]
+    private float tempoUltimoEmpurrao = -10f; // Começa menor para poder usar de primeira
+    public float tempoCooldown = 2.5f; // Tempo em segundos para usar de novo
+
     private ControlesSumo controles;
 
     private void Awake()
@@ -22,24 +29,21 @@ public class BolinhaController : MonoBehaviour
 
     private void Start()
     {
-        // Se já tiver um dado inserido para testes, inicializa
         if (dadosBase != null)
         {
             InicializarBolinha(dadosBase);
         }
     }
 
-    // Método que configura a bolinha com os dados do Scriptable Object correspondente
     public void InicializarBolinha(BolinhaData novosDados)
     {
         dadosBase = novosDados;
         
-        // Aplica os status do Scriptable Object à física do Rigidbody2D
         rb.mass = dadosBase.massaBase;
         transform.localScale = Vector3.one * dadosBase.tamanhoEscala;
         velocidadeAtual = dadosBase.velocidadeInicial;
+        forcaEmpurraoAtual = dadosBase.forcaEmpurraoBase;
 
-        // Aplica a cor correta dependendo de qual jogador assumiu esta bolinha
         SpriteRenderer renderizador = GetComponent<SpriteRenderer>();
         if (renderizador != null)
         {
@@ -47,7 +51,6 @@ public class BolinhaController : MonoBehaviour
         }
     }
 
-    // Ativa os mapas de input por eventos (Padrão Observer)
     private void OnEnable()
     {
         if (idJogador == 1)
@@ -55,31 +58,73 @@ public class BolinhaController : MonoBehaviour
             controles.Jogador1.Enable();
             controles.Jogador1.Mover.performed += AoMover;
             controles.Jogador1.Mover.canceled += AoMover;
+            // Assina o evento do botão de Empurrão (Observer)
+            controles.Jogador1.Empurrar.started += AoTentarEmpurrar;
         }
         else if (idJogador == 2)
         {
             controles.Jogador2.Enable();
             controles.Jogador2.Mover.performed += AoMover;
             controles.Jogador2.Mover.canceled += AoMover;
+            // Assina o evento do botão de Empurrão (Observer)
+            controles.Jogador2.Empurrar.started += AoTentarEmpurrar;
         }
     }
 
     private void OnDisable()
     {
-        // Desativa os controles para evitar erros de memória
         controles.Jogador1.Disable();
         controles.Jogador2.Disable();
     }
 
     private void AoMover(InputAction.CallbackContext contexto)
     {
-        // Salva a direção das teclas (WASD ou Setas) enviadas pelo Input System
         inputMovimento = contexto.ReadValue<Vector2>();
+    }
+
+    // Método chamado pelo evento do botão do Input System
+    private void AoTentarEmpurrar(InputAction.CallbackContext contexto)
+    {
+        // Verifica se o tempo de cooldown já passou
+        if (Time.time - tempoUltimoEmpurrao >= tempoCooldown)
+        {
+            ExecutarEmpurrao();
+        }
+        else
+        {
+            Debug.Log($"Jogador {idJogador} em Cooldown!");
+        }
+    }
+
+    private void ExecutarEmpurrao()
+    {
+        if (inimigo == null) return;
+
+        // Guarda o momento do ataque para o Cooldown
+        tempoUltimoEmpurrao = Time.time;
+
+        // 1. Calcula a distância entre as duas bolinhas
+        float distancia = Vector2.Distance(transform.position, inimigo.transform.position);
+
+        // 2. Calcula a direção oposta (da minha bolinha em direção ao inimigo)
+        Vector2 direcao = (inimigo.transform.position - transform.position).normalized;
+
+        // 3. Regra de proximidade: quanto mais perto, mais forte o empurrão
+        // Se a distância for muito pequena, travamos em 0.5f para não multiplicar por infinito
+        float fatorDistancia = 1f / Mathf.Max(distancia, 0.5f);
+        float forcaFinal = forcaEmpurraoAtual * fatorDistancia;
+
+        // 4. Aplica a força do tipo 'Impulse' (impacto imediato) no Rigidbody do inimigo
+        Rigidbody2D rbInimigo = inimigo.GetComponent<Rigidbody2D>();
+        if (rbInimigo != null)
+        {
+            rbInimigo.AddForce(direcao * forcaFinal, ForceMode2D.Impulse);
+            Debug.Log($"Jogador {idJogador} empurrou com força: {forcaFinal}");
+        }
     }
 
     private void FixedUpdate()
     {
-        // Move o Rigidbody2D diretamente nas 4 direções (X e Y)
         rb.linearVelocity = inputMovimento * velocidadeAtual;
     }
 }

@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b923873410ba4e14994d505539f98e72, type: 3}
+  m_Name: Bolinha_Tanque
+  m_EditorClassIdentifier: Assembly-CSharp::BolinhaData
+  nomeBolinha: Tanque
+  velocidadeInicial: 5
+  forcaEmpurraoBase: 10
+  massaBase: 1.8
+  tamanhoEscala: 1.4
+  corJogador1: {r: 0.08627451, g: 0.5803922, b: 0.05329247, a: 1}
+  corJogador2: {r: 0.41509432, g: 0.1977572, b: 0.1977572, a: 1}

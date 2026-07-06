@@ -99,7 +99,7 @@ public class BolinhaController : MonoBehaviour
         // 1. Calcula a distância entre as duas bolinhas
         float distancia = Vector2.Distance(transform.position, inimigo.transform.position);
 
-        // 2. Verifica se o inimigo está dentro do alcance máximo de empurrão
+        // 2. Verifica se o inimigo está dentro do alcance máximo de empurrão (3 unidades)
         if (distancia > 3f) 
         {
             Debug.Log($"Jogador {idJogador} tentou empurrar, mas o inimigo está muito longe! Distância: {distancia}");
@@ -127,6 +127,16 @@ public class BolinhaController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        rb.linearVelocity = inputMovimento * velocidadeAtual;
+        // NOVA LÓGICA: Calcula a velocidade desejada baseada nas teclas pressionadas
+        Vector2 velocidadeDesejada = inputMovimento * velocidadeAtual;
+        
+        // Calcula a diferença entre a velocidade real da física e a velocidade que o jogador quer
+        Vector2 diferencaVelocidade = velocidadeDesejada - rb.linearVelocity;
+        
+        // Fator de aceleração (20f define quão ágil/responsivo é o controle)
+        float aceleracao = 20f; 
+        
+        // Aplica uma força sutil contínua para mover, mantendo o corpo suscetível a forças externas de impacto
+        rb.AddForce(diferencaVelocidade * aceleracao * rb.mass);
     }
 }

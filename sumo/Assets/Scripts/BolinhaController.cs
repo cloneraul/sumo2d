@@ -58,7 +58,6 @@ public class BolinhaController : MonoBehaviour
             controles.Jogador1.Enable();
             controles.Jogador1.Mover.performed += AoMover;
             controles.Jogador1.Mover.canceled += AoMover;
-            // Assina o evento do botão de Empurrão (Observer)
             controles.Jogador1.Empurrar.started += AoTentarEmpurrar;
         }
         else if (idJogador == 2)
@@ -66,7 +65,6 @@ public class BolinhaController : MonoBehaviour
             controles.Jogador2.Enable();
             controles.Jogador2.Mover.performed += AoMover;
             controles.Jogador2.Mover.canceled += AoMover;
-            // Assina o evento do botão de Empurrão (Observer)
             controles.Jogador2.Empurrar.started += AoTentarEmpurrar;
         }
     }
@@ -82,10 +80,8 @@ public class BolinhaController : MonoBehaviour
         inputMovimento = contexto.ReadValue<Vector2>();
     }
 
-    // Método chamado pelo evento do botão do Input System
     private void AoTentarEmpurrar(InputAction.CallbackContext contexto)
     {
-        // Verifica se o tempo de cooldown já passou
         if (Time.time - tempoUltimoEmpurrao >= tempoCooldown)
         {
             ExecutarEmpurrao();
@@ -100,26 +96,32 @@ public class BolinhaController : MonoBehaviour
     {
         if (inimigo == null) return;
 
-        // Guarda o momento do ataque para o Cooldown
-        tempoUltimoEmpurrao = Time.time;
-
         // 1. Calcula a distância entre as duas bolinhas
         float distancia = Vector2.Distance(transform.position, inimigo.transform.position);
 
-        // 2. Calcula a direção oposta (da minha bolinha em direção ao inimigo)
+        // 2. Verifica se o inimigo está dentro do alcance máximo de empurrão
+        if (distancia > 3f) 
+        {
+            Debug.Log($"Jogador {idJogador} tentou empurrar, mas o inimigo está muito longe! Distância: {distancia}");
+            return; 
+        }
+
+        // Se chegou aqui, o golpe acertou! Ativa o Cooldown:
+        tempoUltimoEmpurrao = Time.time;
+
+        // 3. Calcula a direção em que o inimigo será arremessado
         Vector2 direcao = (inimigo.transform.position - transform.position).normalized;
 
-        // 3. Regra de proximidade: quanto mais perto, mais forte o empurrão
-        // Se a distância for muito pequena, travamos em 0.5f para não multiplicar por infinito
-        float fatorDistancia = 1f / Mathf.Max(distancia, 0.5f);
-        float forcaFinal = forcaEmpurraoAtual * fatorDistancia;
+        // 4. Regra de proximidade com o multiplicador x5 para dar impacto real
+        float fatorDistancia = 1f / Mathf.Max(distancia, 0.4f);
+        float forcaFinal = forcaEmpurraoAtual * fatorDistancia * 5f;
 
-        // 4. Aplica a força do tipo 'Impulse' (impacto imediato) no Rigidbody do inimigo
         Rigidbody2D rbInimigo = inimigo.GetComponent<Rigidbody2D>();
         if (rbInimigo != null)
         {
+            // Aplica a força de impacto imediato (Impulse)
             rbInimigo.AddForce(direcao * forcaFinal, ForceMode2D.Impulse);
-            Debug.Log($"Jogador {idJogador} empurrou com força: {forcaFinal}");
+            Debug.Log($"Jogador {idJogador} EMPURROU COM FORÇA: {forcaFinal}!");
         }
     }
 

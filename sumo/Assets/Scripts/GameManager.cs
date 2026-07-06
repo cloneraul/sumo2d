@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviour
 
     public void CarregarCena(string nomeCena)
     {
-        SceneManager.LoadScene(nomeCena);
+        SceneManager.LoadScene("CenaGameplay");
     }
 
     // Método que será chamado quando uma bolinha cair da arena

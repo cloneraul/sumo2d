@@ -8,7 +8,7 @@ public class BolinhaController : MonoBehaviour
     public int idJogador;
 
     [Header("Alvo")]
-    public BolinhaController inimigo; // Referência para a outra bolinha
+    public BolinhaController inimigo; 
 
     private Rigidbody2D rb;
     private Vector2 inputMovimento;
@@ -16,8 +16,11 @@ public class BolinhaController : MonoBehaviour
     private float forcaEmpurraoAtual;
 
     [Header("Mecânica de Cooldown")]
-    private float tempoUltimoEmpurrao = -10f; // Começa menor para poder usar de primeira
-    public float tempoCooldown = 2.5f; // Tempo em segundos para usar de novo
+    private float tempoUltimoEmpurrao = -10f; 
+    public float tempoCooldown = 2.5f; 
+
+    [Header("Atributos Acumulados por Moedas")]
+    public int moedasColetadas = 0;
 
     private ControlesSumo controles;
 
@@ -96,47 +99,57 @@ public class BolinhaController : MonoBehaviour
     {
         if (inimigo == null) return;
 
-        // 1. Calcula a distância entre as duas bolinhas
         float distancia = Vector2.Distance(transform.position, inimigo.transform.position);
 
-        // 2. Verifica se o inimigo está dentro do alcance máximo de empurrão (3 unidades)
         if (distancia > 3f) 
         {
-            Debug.Log($"Jogador {idJogador} tentou empurrar, mas o inimigo está muito longe! Distância: {distancia}");
+            Debug.Log($"Jogador {idJogador} tentou empurrar, mas o inimigo está muito longe!");
             return; 
         }
 
-        // Se chegou aqui, o golpe acertou! Ativa o Cooldown:
         tempoUltimoEmpurrao = Time.time;
 
-        // 3. Calcula a direção em que o inimigo será arremessado
         Vector2 direcao = (inimigo.transform.position - transform.position).normalized;
 
-        // 4. Regra de proximidade com o multiplicador x5 para dar impacto real
         float fatorDistancia = 1f / Mathf.Max(distancia, 0.4f);
+        
+        // A força final usa a variável 'forcaEmpurraoAtual', que cresce a cada moeda!
         float forcaFinal = forcaEmpurraoAtual * fatorDistancia * 5f;
 
         Rigidbody2D rbInimigo = inimigo.GetComponent<Rigidbody2D>();
         if (rbInimigo != null)
         {
-            // Aplica a força de impacto imediato (Impulse)
             rbInimigo.AddForce(direcao * forcaFinal, ForceMode2D.Impulse);
-            Debug.Log($"Jogador {idJogador} EMPURROU COM FORÇA: {forcaFinal}!");
+            Debug.Log($"Jogador {idJogador} EMPURROU com força total de: {forcaFinal}!");
         }
+    }
+
+    // REGRA DO DOCUMENTO: Modificadores Acumulativos das Moedas
+    public void ColetarMoedaEvolutiva()
+    {
+        moedasColetadas++;
+
+        // 1. Fica mais pesada (Aumenta a massa no Rigidbody em +0.5 por moeda)
+        rb.mass += 0.5f;
+
+        // 2. Dá mais força (Aumenta a força base de empurrão em +3 por moeda)
+        forcaEmpurraoAtual += 3f;
+
+        // 3. Fica mais lenta (Diminui a velocidade atual em -0.5 por moeda)
+        // Colocamos um limite mínimo (ex: 2f) para a bolinha não parar de andar se pegar muitas moedas
+        velocidadeAtual = Mathf.Max(velocidadeAtual - 0.5f, 2f);
+
+        Debug.Log($"[MOEDA] Jogador {idJogador} coletou sua {moedasColetadas}ª moeda! " +
+                  $"Nova Massa: {rb.mass} | Nova Força Base: {forcaEmpurraoAtual} | Nova Vel: {velocidadeAtual}");
     }
 
     private void FixedUpdate()
     {
-        // NOVA LÓGICA: Calcula a velocidade desejada baseada nas teclas pressionadas
         Vector2 velocidadeDesejada = inputMovimento * velocidadeAtual;
-        
-        // Calcula a diferença entre a velocidade real da física e a velocidade que o jogador quer
         Vector2 diferencaVelocidade = velocidadeDesejada - rb.linearVelocity;
         
-        // Fator de aceleração (20f define quão ágil/responsivo é o controle)
         float aceleracao = 20f; 
         
-        // Aplica uma força sutil contínua para mover, mantendo o corpo suscetível a forças externas de impacto
         rb.AddForce(diferencaVelocidade * aceleracao * rb.mass);
     }
 }

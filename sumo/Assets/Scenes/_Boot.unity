@@ -148,6 +148,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2a0b561afb5949b44975fe66f5499904, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
+  prefabJogadorBase: {fileID: 2521156537452134854, guid: 1f0678e6f4661c247a0407823918f016, type: 3}
+  todasAsBolinhasData:
+  - {fileID: 11400000, guid: 0b395f79a1f710b4a986191b8e958b35, type: 2}
+  - {fileID: 11400000, guid: 0b8fdc6b647be8e4fb21dda2f785a0f2, type: 2}
+  - {fileID: 11400000, guid: 751b66f3c8ade0b4c97f3737186d9e74, type: 2}
+  - {fileID: 11400000, guid: 006f90e6b4b12c146b3c8bf44043db90, type: 2}
+  - {fileID: 11400000, guid: cc3f49b4369e9d240896d4379145eab3, type: 2}
   "roundsVit\xF3riaJogador1": 0
   "roundsVit\xF3riaJogador2": 0
   indexBolinhaJogador1: 0

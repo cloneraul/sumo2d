@@ -2,19 +2,19 @@ using UnityEngine;
 
 public class Moeda : MonoBehaviour
 {
-    // Mudamos de OnTriggerEnter2D para OnCollisionEnter2D
-    private void OnCollisionEnter2D(Collision2D colisao)
+    private void OnTriggerEnter2D(Collider2D colisor)
     {
-        // Pega o colisor do objeto que bateu na moeda
-        BolinhaController bolinha = colisao.collider.GetComponent<BolinhaController>();
+        Debug.Log($"[MOEDA] Objeto colidiu com a moeda: {colisor.gameObject.name}");
 
-        if (bolinha != null)
+        if (colisor.gameObject.name == "Teste_J1" || colisor.gameObject.name == "Teste_J2")
         {
-            // Ativa os modificadores permanentes e acumulativos na bolinha
-            bolinha.ColetarMoedaEvolutiva();
-            
-            // Destrói a moeda da arena
-            Destroy(gameObject);
+            BolinhaController bolinha = colisor.GetComponent<BolinhaController>();
+
+            if (bolinha != null)
+            {
+                bolinha.ColetarMoedaEvolutiva();
+                Destroy(gameObject);
+            }
         }
     }
 }

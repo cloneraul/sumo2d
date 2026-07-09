@@ -1,6 +1,20 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/// <summary>
+/// Controller principal do jogador (bolinha). Gerencia movimento, empurrão e coleta de moedas.
+/// 
+/// PARA DIAGNOSTICAR PROBLEMAS COM TRIGGERS:
+/// Se OnTriggerEnter2D não dispara quando o jogador pega moeda:
+/// 1. Adicione o script DetectorFisico.cs a este GameObject
+/// 2. Adicione DetectorFisico.cs também à moeda
+/// 3. Consulte LAYER_COLLISION_GUIDE.md na pasta session-state
+/// 
+/// Possíveis problemas:
+/// - Layer Collision Matrix bloqueando colisões (Physics 2D Settings)
+/// - "Is Trigger" não ativado na moeda
+/// - Collision Detection não em modo Continuous (já configurado aqui)
+/// </summary>
 public class BolinhaController : MonoBehaviour
 {
     [Header("Configurações Base")]
@@ -36,6 +50,9 @@ public class BolinhaController : MonoBehaviour
         {
             InicializarBolinha(dadosBase);
         }
+
+        // FIX: Força detecção contínua de colisão para que OnTriggerEnter2D dispare corretamente
+        rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
     }
 
     public void InicializarBolinha(BolinhaData novosDados)

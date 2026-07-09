@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3043070845924149110}
   - component: {fileID: 7817435541322794151}
   - component: {fileID: 4323790826916217752}
+  - component: {fileID: -5329854902280155159}
   m_Layer: 0
   m_Name: Moeda
   m_TagString: Untagged
@@ -128,3 +129,15 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
+--- !u!114 &-5329854902280155159
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5657630535383975128}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46c52ee6be186e64a819113fa248e45c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Moeda

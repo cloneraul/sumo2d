@@ -28,8 +28,8 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // Vai direto para a sua cena de gameplay atual, onde seus jogadores estão fixos
-        CarregarCena("CenaGameplay");
+        // MODIFICAÇÃO AQUI: Em vez de pular direto para o jogo, vai para o Menu de Seleção!
+        CarregarCena("MenuSelecao");
     }
 
     public void CarregarCena(string nomeCena)
@@ -46,6 +46,7 @@ public class GameManager : MonoBehaviour
 
         if (roundsVitóriaJogador1 >= 2 || roundsVitóriaJogador2 >= 2)
         {
+            // Nota: Lembre-se de criar essa cena depois ou usar o painel que vamos fazer!
             CarregarCena("CenaVitoria");
         }
         else

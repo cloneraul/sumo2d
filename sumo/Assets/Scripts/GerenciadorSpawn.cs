@@ -2,97 +2,64 @@ using UnityEngine;
 
 public class GerenciadorSpawn : MonoBehaviour
 {
-    [Header("Prefabs das Bolinhas (ORDEM RIGOROSA DE ÍNDICES)")]
-    [Tooltip("Índice 0: Vazio/Padrão (não usado)\nÍndice 1: Bolinha Veloz\nÍndice 2: Bolinha Tanque\nÍndice 3: Bolinha Demolidora\nÍndice 4: Bolinha Planta\nÍndice 5: Bolinha Equilibrada")]
-    public GameObject[] prefabsBolinhas = new GameObject[6];
+    [Header("ORDEM RIGOROSA DE ÍNDICES (1 a 5)")]
+    public GameObject[] prefabsBolinhas;
 
     [Header("Pontos de Spawn na Arena")]
     public Transform pontoSpawnJ1;
     public Transform pontoSpawnJ2;
 
-    private BolinhaController bolinhaj1;
-    private BolinhaController bolinhaj2;
-
-    private void Start()
+    void Start()
     {
-        ValidarConfiguracao();
-
-        int tipoJ1 = DadosGlobais.Instancia.tipoEscolhidoJ1;
-        int tipoJ2 = DadosGlobais.Instancia.tipoEscolhidoJ2;
-
-        Debug.Log($"[GerenciadorSpawn] Lendo tipos do menu: J1={tipoJ1}, J2={tipoJ2}");
-
-        SpawnarJogador(tipoJ1, pontoSpawnJ1, 1);
-        SpawnarJogador(tipoJ2, pontoSpawnJ2, 2);
-
-        ConectarJogadores();
-    }
-
-    private void ValidarConfiguracao()
-    {
-        if (prefabsBolinhas == null || prefabsBolinhas.Length < 6)
+        // 1. Verifica se a memória global existe
+        if (DadosGlobais.Instancia == null)
         {
-            Debug.LogError("[GerenciadorSpawn] Array prefabsBolinhas deve ter pelo menos 6 elementos!");
+            Debug.LogError("[SPAWN] DadosGlobais não encontrado! Certifique-se de iniciar o jogo pela cena _Boot.");
             return;
         }
 
-        if (pontoSpawnJ1 == null || pontoSpawnJ2 == null)
+        // 2. Pega os IDs selecionados no menu
+        int idJ1 = DadosGlobais.Instancia.tipoEscolhidoJ1;
+        int idJ2 = DadosGlobais.Instancia.tipoEscolhidoJ2;
+
+        // Validação rápida caso os IDs venham zerados (por dar play direto na cena)
+        if (idJ1 == 0) idJ1 = 1; // Padrão Veloz se der erro
+        if (idJ2 == 0) idJ2 = 1;
+
+        // 3. Spawna o jogador 1
+        if (idJ1 < prefabsBolinhas.Length && prefabsBolinhas[idJ1] != null)
         {
-            Debug.LogError("[GerenciadorSpawn] Pontos de Spawn (pontoSpawnJ1 e pontoSpawnJ2) não configurados!");
-            return;
-        }
-    }
-
-    private void SpawnarJogador(int idTipo, Transform pontoSpawn, int idJogador)
-    {
-        if (idTipo < 1 || idTipo >= prefabsBolinhas.Length)
-        {
-            Debug.LogError($"[GerenciadorSpawn] ID de tipo {idTipo} inválido! Deve estar entre 1 e {prefabsBolinhas.Length - 1}");
-            return;
-        }
-
-        GameObject prefab = prefabsBolinhas[idTipo];
-        if (prefab == null)
-        {
-            Debug.LogError($"[GerenciadorSpawn] Prefab no índice {idTipo} está vazio!");
-            return;
-        }
-
-        GameObject instancia = Instantiate(prefab, pontoSpawn.position, Quaternion.identity);
-        BolinhaController bolinha = instancia.GetComponent<BolinhaController>();
-
-        if (bolinha != null)
-        {
-            bolinha.idJogador = idJogador;
-
-            if (idJogador == 1)
+            GameObject cloneJ1 = Instantiate(prefabsBolinhas[idJ1], pontoSpawnJ1.position, Quaternion.identity);
+            cloneJ1.name = "Teste_J1"; // Mantém o nome idêntico para a colisão da moeda funcionar!
+            
+            // Tenta configurar o input do jogador 1 no script dele (se houver uma variável pra isso)
+            BolinhaController controller = cloneJ1.GetComponent<BolinhaController>();
+            if (controller != null)
             {
-                bolinhaj1 = bolinha;
+                // Se o seu script de bolinha usar uma variável para diferenciar controle, ative aqui.
+                // Exemplo comum: controller.ehJogador1 = true;
             }
-            else if (idJogador == 2)
-            {
-                bolinhaj2 = bolinha;
-            }
-
-            Debug.Log($"[Spawn] Jogador {idJogador} (Tipo {idTipo}) instanciado em {pontoSpawn.position}");
         }
         else
         {
-            Debug.LogError($"[GerenciadorSpawn] Prefab no índice {idTipo} não possui componente BolinhaController!");
+            Debug.LogError("[SPAWN] Prefab para o ID do Jogador 1 não foi configurado na lista!");
         }
-    }
 
-    private void ConectarJogadores()
-    {
-        if (bolinhaj1 != null && bolinhaj2 != null)
+        // 4. Spawna o jogador 2
+        if (idJ2 < prefabsBolinhas.Length && prefabsBolinhas[idJ2] != null)
         {
-            bolinhaj1.inimigo = bolinhaj2;
-            bolinhaj2.inimigo = bolinhaj1;
-            Debug.Log("[GerenciadorSpawn] Jogadores conectados como inimigos um do outro!");
+            GameObject cloneJ2 = Instantiate(prefabsBolinhas[idJ2], pontoSpawnJ2.position, Quaternion.identity);
+            cloneJ2.name = "Teste_J2"; // Mantém o nome idêntico para a colisão da moeda funcionar!
+            
+            BolinhaController controller = cloneJ2.GetComponent<BolinhaController>();
+            if (controller != null)
+            {
+                // Exemplo comum: controller.ehJogador1 = false;
+            }
         }
         else
         {
-            Debug.LogWarning("[GerenciadorSpawn] Falha ao conectar jogadores - verifique os prefabs!");
+            Debug.LogError("[SPAWN] Prefab para o ID do Jogador 2 não foi configurado na lista!");
         }
     }
 }

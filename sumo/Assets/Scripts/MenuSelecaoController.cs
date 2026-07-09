@@ -2,6 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
+/// <summary>
+/// Controlador da cena de seleção de tipos de jogadores.
+/// Nome da classe DEVE estar em sincronismo com o nome do arquivo (MenuSelecaoController.cs)
+/// </summary>
 public class MenuSelecaoController : MonoBehaviour
 {
     public Button botaoIniciarJogo;
@@ -46,6 +50,7 @@ public class MenuSelecaoController : MonoBehaviour
 
     public void CarregarGameplay()
     {
-        SceneManager.LoadScene("Gameplay");
+        SceneManager.LoadScene("CenaGameplay");
+        
     }
 }

@@ -3,17 +3,6 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// Controller principal do jogador (bolinha). Gerencia movimento, empurrão e coleta de moedas.
-/// 
-/// PARA DIAGNOSTICAR PROBLEMAS COM TRIGGERS:
-/// Se OnTriggerEnter2D não dispara quando o jogador pega moeda:
-/// 1. Adicione o script DetectorFisico.cs a este GameObject
-/// 2. Adicione DetectorFisico.cs também à moeda
-/// 3. Consulte LAYER_COLLISION_GUIDE.md na pasta session-state
-/// 
-/// Possíveis problemas:
-/// - Layer Collision Matrix bloqueando colisões (Physics 2D Settings)
-/// - "Is Trigger" não ativado na moeda
-/// - Collision Detection não em modo Continuous (já configurado aqui)
 /// </summary>
 public class BolinhaController : MonoBehaviour
 {
@@ -46,33 +35,47 @@ public class BolinhaController : MonoBehaviour
 
     private void Start()
     {
-        if (dadosBase != null)
-        {
-            InicializarBolinha(dadosBase);
-        }
-
-        // FIX: Força detecção contínua de colisão para que OnTriggerEnter2D dispare corretamente
+        // Força detecção contínua de colisão para que os Triggers e Física funcionem perfeitamente
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        
+        // Busca automática pelo inimigo na cena após ambos nascerem
+        Invoke(nameof(BuscarInimigoAutomaticamente), 0.1f);
     }
 
-    public void InicializarBolinha(BolinhaData novosDados)
+    /// <summary>
+    /// Esta função é chamada pelo GerenciadorSpawn assim que a bolinha é instanciada.
+    /// Ela injeta os Scriptable Objects corretos e define quem é o J1 ou J2.
+    /// </summary>
+    public void InicializarBolinha(BolinhaData novosDados, bool ehJogador1)
     {
         dadosBase = novosDados;
+        idJogador = ehJogador1 ? 1 : 2;
         
+        // Aplica os dados vindos do seu Scriptable Object específico
         rb.mass = dadosBase.massaBase;
         transform.localScale = Vector3.one * dadosBase.tamanhoEscala;
         velocidadeAtual = dadosBase.velocidadeInicial;
         forcaEmpurraoAtual = dadosBase.forcaEmpurraoBase;
 
+        // Altera a cor dinamicamente com base no arquivo laranja (Scriptable Object)
         SpriteRenderer renderizador = GetComponent<SpriteRenderer>();
         if (renderizador != null)
         {
-            renderizador.color = (idJogador == 1) ? dadosBase.corJogador1 : dadosBase.corJogador2;
+            renderizador.color = ehJogador1 ? dadosBase.corJogador1 : dadosBase.corJogador2;
         }
+
+        // Ativa os controles do Input System baseados no ID definido
+        AtivarControlesPorID();
+
+        Debug.Log($"[BOLINHA] Jogador {idJogador} inicializado com sucesso usando dados de: {dadosBase.name}");
     }
 
-    private void OnEnable()
+    private void AtivarControlesPorID()
     {
+        // Desativa primeiro para garantir que não haja duplicatas
+        controles.Jogador1.Disable();
+        controles.Jogador2.Disable();
+
         if (idJogador == 1)
         {
             controles.Jogador1.Enable();
@@ -89,10 +92,26 @@ public class BolinhaController : MonoBehaviour
         }
     }
 
+    private void BuscarInimigoAutomaticamente()
+    {
+        BolinhaController[] todosJogadores = FindObjectsByType<BolinhaController>(FindObjectsSortMode.None);
+        foreach (BolinhaController jogador in todosJogadores)
+        {
+            if (jogador != this)
+            {
+                inimigo = jogador;
+                break;
+            }
+        }
+    }
+
     private void OnDisable()
     {
-        controles.Jogador1.Disable();
-        controles.Jogador2.Disable();
+        if (controles != null)
+        {
+            controles.Jogador1.Disable();
+            controles.Jogador2.Disable();
+        }
     }
 
     private void AoMover(InputAction.CallbackContext contexto)
@@ -130,7 +149,6 @@ public class BolinhaController : MonoBehaviour
 
         float fatorDistancia = 1f / Mathf.Max(distancia, 0.4f);
         
-        // A força final usa a variável 'forcaEmpurraoAtual', que cresce a cada moeda!
         float forcaFinal = forcaEmpurraoAtual * fatorDistancia * 5f;
 
         Rigidbody2D rbInimigo = inimigo.GetComponent<Rigidbody2D>();
@@ -141,19 +159,17 @@ public class BolinhaController : MonoBehaviour
         }
     }
 
-    // REGRA DO DOCUMENTO: Modificadores Acumulativos das Moedas
     public void ColetarMoedaEvolutiva()
     {
         moedasColetadas++;
 
-        // 1. Fica mais pesada (Aumenta a massa no Rigidbody em +0.5 por moeda)
+        // 1. Fica mais pesada (+0.5 por moeda)
         rb.mass += 0.5f;
 
-        // 2. Dá mais força (Aumenta a força base de empurrão em +3 por moeda)
+        // 2. Dá mais força (+3 por moeda)
         forcaEmpurraoAtual += 3f;
 
-        // 3. Fica mais lenta (Diminui a velocidade atual em -0.5 por moeda)
-        // Colocamos um limite mínimo (ex: 2f) para a bolinha não parar de andar se pegar muitas moedas
+        // 3. Fica mais lenta (-0.5 por moeda, limite mínimo de 2f)
         velocidadeAtual = Mathf.Max(velocidadeAtual - 0.5f, 2f);
 
         Debug.Log($"[MOEDA] Jogador {idJogador} coletou sua {moedasColetadas}ª moeda! " +

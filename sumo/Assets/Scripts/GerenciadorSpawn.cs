@@ -2,8 +2,11 @@ using UnityEngine;
 
 public class GerenciadorSpawn : MonoBehaviour
 {
-    [Header("ORDEM RIGOROSA DE ÍNDICES (1 a 5)")]
-    public GameObject[] prefabsBolinhas;
+    [Header("PREFAB BASE DA BOLINHA (Arraste o Jogador_Bolinha aqui)")]
+    public GameObject prefabBolinhaBase;
+
+    [Header("ARQUIVOS DE DADOS (ORDEM RIGOROSA DE 1 A 5)")]
+    public BolinhaData[] dadosBolinhas;
 
     [Header("Pontos de Spawn na Arena")]
     public Transform pontoSpawnJ1;
@@ -22,44 +25,42 @@ public class GerenciadorSpawn : MonoBehaviour
         int idJ1 = DadosGlobais.Instancia.tipoEscolhidoJ1;
         int idJ2 = DadosGlobais.Instancia.tipoEscolhidoJ2;
 
-        // Validação rápida caso os IDs venham zerados (por dar play direto na cena)
-        if (idJ1 == 0) idJ1 = 1; // Padrão Veloz se der erro
+        // Validação rápida caso os IDs venham zerados (por dar play direto na cena de teste)
+        if (idJ1 == 0) idJ1 = 1; 
         if (idJ2 == 0) idJ2 = 1;
 
-        // 3. Spawna o jogador 1
-        if (idJ1 < prefabsBolinhas.Length && prefabsBolinhas[idJ1] != null)
+        // 3. Spawna o Jogador 1
+        if (idJ1 < dadosBolinhas.Length && dadosBolinhas[idJ1] != null)
         {
-            GameObject cloneJ1 = Instantiate(prefabsBolinhas[idJ1], pontoSpawnJ1.position, Quaternion.identity);
-            cloneJ1.name = "Teste_J1"; // Mantém o nome idêntico para a colisão da moeda funcionar!
+            GameObject cloneJ1 = Instantiate(prefabBolinhaBase, pontoSpawnJ1.position, Quaternion.identity);
+            cloneJ1.name = "Teste_J1"; // Mantém o nome exato para colisões antigas funcionarem
             
-            // Tenta configurar o input do jogador 1 no script dele (se houver uma variável pra isso)
             BolinhaController controller = cloneJ1.GetComponent<BolinhaController>();
             if (controller != null)
             {
-                // Se o seu script de bolinha usar uma variável para diferenciar controle, ative aqui.
-                // Exemplo comum: controller.ehJogador1 = true;
+                controller.InicializarBolinha(dadosBolinhas[idJ1], true);
             }
         }
         else
         {
-            Debug.LogError("[SPAWN] Prefab para o ID do Jogador 1 não foi configurado na lista!");
+            Debug.LogError("[SPAWN] ScriptableObject para o ID do Jogador 1 não foi configurado na lista!");
         }
 
-        // 4. Spawna o jogador 2
-        if (idJ2 < prefabsBolinhas.Length && prefabsBolinhas[idJ2] != null)
+        // 4. Spawna o Jogador 2
+        if (idJ2 < dadosBolinhas.Length && dadosBolinhas[idJ2] != null)
         {
-            GameObject cloneJ2 = Instantiate(prefabsBolinhas[idJ2], pontoSpawnJ2.position, Quaternion.identity);
-            cloneJ2.name = "Teste_J2"; // Mantém o nome idêntico para a colisão da moeda funcionar!
+            GameObject cloneJ2 = Instantiate(prefabBolinhaBase, pontoSpawnJ2.position, Quaternion.identity);
+            cloneJ2.name = "Teste_J2"; // Mantém o nome exato para colisões antigas funcionarem
             
             BolinhaController controller = cloneJ2.GetComponent<BolinhaController>();
             if (controller != null)
             {
-                // Exemplo comum: controller.ehJogador1 = false;
+                controller.InicializarBolinha(dadosBolinhas[idJ2], false);
             }
         }
         else
         {
-            Debug.LogError("[SPAWN] Prefab para o ID do Jogador 2 não foi configurado na lista!");
+            Debug.LogError("[SPAWN] ScriptableObject para o ID do Jogador 2 não foi configurado na lista!");
         }
     }
 }

@@ -148,8 +148,12 @@ public class BolinhaController : MonoBehaviour
         Vector2 direcao = (inimigo.transform.position - transform.position).normalized;
 
         float fatorDistancia = 1f / Mathf.Max(distancia, 0.4f);
-        
+
         float forcaFinal = forcaEmpurraoAtual * fatorDistancia * 5f;
+        // Proteções contra valores extremos
+        if (float.IsNaN(forcaFinal) || float.IsInfinity(forcaFinal)) forcaFinal = 0f;
+        float maxEmpurrao = 100f; // limite seguro para impulsos
+        forcaFinal = Mathf.Clamp(forcaFinal, -maxEmpurrao, maxEmpurrao);
 
         Rigidbody2D rbInimigo = inimigo.GetComponent<Rigidbody2D>();
         if (rbInimigo != null)
@@ -182,7 +186,14 @@ public class BolinhaController : MonoBehaviour
         Vector2 diferencaVelocidade = velocidadeDesejada - rb.linearVelocity;
         
         float aceleracao = 20f; 
-        
-        rb.AddForce(diferencaVelocidade * aceleracao * rb.mass);
+        Vector2 forcaAplicar = diferencaVelocidade * aceleracao * rb.mass;
+        // Limita força aplicada para evitar picos extremos em casos de valores estranhos
+        float maxForceMagnitude = 200f;
+        if (forcaAplicar.magnitude > maxForceMagnitude)
+        {
+            forcaAplicar = forcaAplicar.normalized * maxForceMagnitude;
+        }
+
+        rb.AddForce(forcaAplicar);
     }
 }

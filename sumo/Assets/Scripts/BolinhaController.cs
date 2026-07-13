@@ -25,6 +25,16 @@ public class BolinhaController : MonoBehaviour
     [Header("Atributos Acumulados por Moedas")]
     public int moedasColetadas = 0;
 
+    [Header("Ajuste Fino do Balanço (Moedas)")]
+    [Tooltip("Quanto de massa a bolinha ganha por moeda.")]
+    public float ganhoMassaPorMoeda = 0.2f;
+    [Tooltip("Quanto de força de empurrão a bolinha ganha por moeda.")]
+    public float ganhoForcaPorMoeda = 0.5f;
+    [Tooltip("Quanto de velocidade a bolinha perde por moeda.")]
+    public float perdaVelocidadePorMoeda = 0.2f;
+    [Tooltip("Velocidade mínima que a bolinha pode chegar ao coletar muitas moedas.")]
+    public float velocidadeMinimaPossivel = 3.0f;
+
     private ControlesSumo controles;
 
     private void Awake()
@@ -150,7 +160,8 @@ public class BolinhaController : MonoBehaviour
         float fatorDistancia = 1f / Mathf.Max(distancia, 0.4f);
 
         float forcaFinal = forcaEmpurraoAtual * fatorDistancia * 5f;
-        // Proteções contra valores extremes
+        
+        // Proteções contra valores extremos
         if (float.IsNaN(forcaFinal) || float.IsInfinity(forcaFinal)) forcaFinal = 0f;
         float maxEmpurrao = 100f; // limite seguro para impulsos
         forcaFinal = Mathf.Clamp(forcaFinal, -maxEmpurrao, maxEmpurrao);
@@ -167,14 +178,10 @@ public class BolinhaController : MonoBehaviour
     {
         moedasColetadas++;
 
-        // 1. Fica ligeiramente mais pesada (+0.3 por moeda em vez do antigo 0.5)
-        rb.mass += 0.3f;
-
-        // 2. Dá um bônus de força muito menor (+0.8f por moeda em vez de +3f)
-        forcaEmpurraoAtual += 0.8f;
-
-        // 3. Fica um pouco mais lenta ao acumular moedas (-0.3f por moeda, limite mínimo de 2f)
-        velocidadeAtual = Mathf.Max(velocidadeAtual - 0.3f, 2f);
+        // Balanço Dinâmico: Usa as variáveis do topo do script para fácil calibração
+        rb.mass += ganhoMassaPorMoeda;
+        forcaEmpurraoAtual += ganhoForcaPorMoeda;
+        velocidadeAtual = Mathf.Max(velocidadeAtual - perdaVelocidadePorMoeda, velocidadeMinimaPossivel);
 
         Debug.Log($"[MOEDA] Jogador {idJogador} coletou sua {moedasColetadas}ª moeda! " +
                   $"Nova Massa: {rb.mass} | Nova Força Base: {forcaEmpurraoAtual} | Nova Vel: {velocidadeAtual}");
@@ -182,7 +189,6 @@ public class BolinhaController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Se o jogador ESTIVER movendo o analógico ou teclado
         if (inputMovimento.magnitude > 0)
         {
             Vector2 velocidadeDesejada = inputMovimento * velocidadeAtual;
@@ -199,12 +205,6 @@ public class BolinhaController : MonoBehaviour
             }
 
             rb.AddForce(forcaAplicar);
-        }
-        else
-        {
-            // SE O JOGADOR SOLTOU O BOTÃO:
-            // Não aplicamos nenhuma força de freio! Deixamos o 'Linear Damping' do Rigidbody
-            // fazer a bolinha deslizar suavemente até parar por conta própria.
         }
     }
 }

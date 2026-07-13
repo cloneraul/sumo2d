@@ -150,7 +150,7 @@ public class BolinhaController : MonoBehaviour
         float fatorDistancia = 1f / Mathf.Max(distancia, 0.4f);
 
         float forcaFinal = forcaEmpurraoAtual * fatorDistancia * 5f;
-        // Proteções contra valores extremos
+        // Proteções contra valores extremes
         if (float.IsNaN(forcaFinal) || float.IsInfinity(forcaFinal)) forcaFinal = 0f;
         float maxEmpurrao = 100f; // limite seguro para impulsos
         forcaFinal = Mathf.Clamp(forcaFinal, -maxEmpurrao, maxEmpurrao);
@@ -182,18 +182,29 @@ public class BolinhaController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Vector2 velocidadeDesejada = inputMovimento * velocidadeAtual;
-        Vector2 diferencaVelocidade = velocidadeDesejada - rb.linearVelocity;
-        
-        float aceleracao = 20f; 
-        Vector2 forcaAplicar = diferencaVelocidade * aceleracao * rb.mass;
-        // Limita força aplicada para evitar picos extremos em casos de valores estranhos
-        float maxForceMagnitude = 200f;
-        if (forcaAplicar.magnitude > maxForceMagnitude)
+        // Se o jogador ESTIVER movendo o analógico ou teclado
+        if (inputMovimento.magnitude > 0)
         {
-            forcaAplicar = forcaAplicar.normalized * maxForceMagnitude;
-        }
+            Vector2 velocidadeDesejada = inputMovimento * velocidadeAtual;
+            Vector2 diferencaVelocidade = velocidadeDesejada - rb.linearVelocity;
+            
+            float aceleracao = 20f; 
+            Vector2 forcaAplicar = diferencaVelocidade * aceleracao * rb.mass;
+            
+            // Limita força aplicada para evitar picos extremos
+            float maxForceMagnitude = 200f;
+            if (forcaAplicar.magnitude > maxForceMagnitude)
+            {
+                forcaAplicar = forcaAplicar.normalized * maxForceMagnitude;
+            }
 
-        rb.AddForce(forcaAplicar);
+            rb.AddForce(forcaAplicar);
+        }
+        else
+        {
+            // SE O JOGADOR SOLTOU O BOTÃO:
+            // Não aplicamos nenhuma força de freio! Deixamos o 'Linear Damping' do Rigidbody
+            // fazer a bolinha deslizar suavemente até parar por conta própria.
+        }
     }
 }

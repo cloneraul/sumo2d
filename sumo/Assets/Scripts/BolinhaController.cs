@@ -167,14 +167,14 @@ public class BolinhaController : MonoBehaviour
     {
         moedasColetadas++;
 
-        // 1. Fica mais pesada (+0.5 por moeda)
-        rb.mass += 0.5f;
+        // 1. Fica ligeiramente mais pesada (+0.3 por moeda em vez do antigo 0.5)
+        rb.mass += 0.3f;
 
-        // 2. Dá mais força (+3 por moeda)
-        forcaEmpurraoAtual += 3f;
+        // 2. Dá um bônus de força muito menor (+0.8f por moeda em vez de +3f)
+        forcaEmpurraoAtual += 0.8f;
 
-        // 3. Fica mais lenta (-0.5 por moeda, limite mínimo de 2f)
-        velocidadeAtual = Mathf.Max(velocidadeAtual - 0.5f, 2f);
+        // 3. Fica um pouco mais lenta ao acumular moedas (-0.3f por moeda, limite mínimo de 2f)
+        velocidadeAtual = Mathf.Max(velocidadeAtual - 0.3f, 2f);
 
         Debug.Log($"[MOEDA] Jogador {idJogador} coletou sua {moedasColetadas}ª moeda! " +
                   $"Nova Massa: {rb.mass} | Nova Força Base: {forcaEmpurraoAtual} | Nova Vel: {velocidadeAtual}");

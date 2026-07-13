@@ -198,7 +198,7 @@ public class BolinhaController : MonoBehaviour
             Vector2 forcaAplicar = diferencaVelocidade * aceleracao * rb.mass;
             
             // Limita força aplicada para evitar picos extremos
-            float maxForceMagnitude = 200f;
+            float maxForceMagnitude = 50f;
             if (forcaAplicar.magnitude > maxForceMagnitude)
             {
                 forcaAplicar = forcaAplicar.normalized * maxForceMagnitude;

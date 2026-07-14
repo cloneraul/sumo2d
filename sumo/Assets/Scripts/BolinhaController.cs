@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// Controller principal do jogador (bolinha). Gerencia movimento, empurrão e coleta de moedas.
+/// Controller principal do jogador (bolinha). Gerencia movimento, empurrão, coleta de moedas e UI.
 /// </summary>
 public class BolinhaController : MonoBehaviour
 {
@@ -46,14 +46,15 @@ public class BolinhaController : MonoBehaviour
 
     private void Start()
     {
-        // Força detecção contínua de colisão para que os Triggers e Física funcionem perfeitamente
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
-        
-        // Busca o GameManager na cena
         gameManager = FindFirstObjectByType<GameManager>();
-        
-        // Busca automática pelo inimigo na cena após ambos nascerem
         Invoke(nameof(BuscarInimigoAutomaticamente), 0.1f);
+    }
+
+    private void Update()
+    {
+        // Envia as informações do tempo de recarga para a HUD atualizar a cada frame
+        EnviarCooldownParaUI();
     }
 
     /// <summary>
@@ -65,23 +66,18 @@ public class BolinhaController : MonoBehaviour
         dadosBase = novosDados;
         idJogador = ehJogador1 ? 1 : 2;
         
-        // Aplica os dados vindos do seu Scriptable Object específico
         rb.mass = dadosBase.massaBase;
         transform.localScale = Vector3.one * dadosBase.tamanhoEscala;
         velocidadeAtual = dadosBase.velocidadeInicial;
         forcaEmpurraoAtual = dadosBase.forcaEmpurraoBase;
 
-        // Altera a cor dinamicamente com base no arquivo laranja (Scriptable Object)
         SpriteRenderer renderizador = GetComponent<SpriteRenderer>();
         if (renderizador != null)
         {
             renderizador.color = ehJogador1 ? dadosBase.corJogador1 : dadosBase.corJogador2;
         }
 
-        // Ativa os controles do Input System baseados no ID definido
         AtivarControlesPorID();
-
-        // Notifica o GameManager para resetar/inicializar o texto na UI
         NotificarUI();
 
         Debug.Log($"[BOLINHA] Jogador {idJogador} inicializado com sucesso usando dados de: {dadosBase.name}");
@@ -89,7 +85,6 @@ public class BolinhaController : MonoBehaviour
 
     private void AtivarControlesPorID()
     {
-        // Desativa primeiro para garantir que não haja duplicatas
         controles.Jogador1.Disable();
         controles.Jogador2.Disable();
 
@@ -116,7 +111,7 @@ public class BolinhaController : MonoBehaviour
         {
             if (jogador != this)
             {
-                inimigo = jogador;
+                inimigo = jogador; // CORREÇÃO AQUI: Removido o 'child:'
                 break;
             }
         }
@@ -168,9 +163,8 @@ public class BolinhaController : MonoBehaviour
 
         float forcaFinal = forcaEmpurraoAtual * fatorDistancia * 5f;
         
-        // Proteções contra valores extremos
         if (float.IsNaN(forcaFinal) || float.IsInfinity(forcaFinal)) forcaFinal = 0f;
-        float maxEmpurrao = 100f; // limite seguro para impulsos
+        float maxEmpurrao = 100f; 
         forcaFinal = Mathf.Clamp(forcaFinal, -maxEmpurrao, maxEmpurrao);
 
         Rigidbody2D rbInimigo = inimigo.GetComponent<Rigidbody2D>();
@@ -185,12 +179,10 @@ public class BolinhaController : MonoBehaviour
     {
         moedasColetadas++;
 
-        // Balanço Dinâmico: Usa as variáveis do topo do script para fácil calibração
         rb.mass += ganhoMassaPorMoeda;
         forcaEmpurraoAtual += ganhoForcaPorMoeda;
         velocidadeAtual = Mathf.Max(velocidadeAtual - perdaVelocidadePorMoeda, velocidadeMinimaPossivel);
 
-        // Notifica o GameManager sobre a nova moeda coletada
         NotificarUI();
 
         Debug.Log($"[MOEDA] Jogador {idJogador} coletou sua {moedasColetadas}ª moeda! " +
@@ -205,6 +197,26 @@ public class BolinhaController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Calcula o tempo de cooldown restante e envia para o GameManager atualizar o Canvas.
+    /// </summary>
+    private void EnviarCooldownParaUI()
+    {
+        if (gameManager == null) return;
+
+        float tempoPassado = Time.time - tempoUltimoEmpurrao;
+        float tempoRestante = tempoCooldown - tempoPassado;
+
+        if (tempoRestante > 0)
+        {
+            gameManager.AtualizarCooldownInterface(idJogador, tempoRestante);
+        }
+        else
+        {
+            gameManager.AtualizarCooldownInterface(idJogador, 0f);
+        }
+    }
+
     private void FixedUpdate()
     {
         if (inputMovimento.magnitude > 0)
@@ -215,7 +227,6 @@ public class BolinhaController : MonoBehaviour
             float aceleracao = 20f; 
             Vector2 forcaAplicar = diferencaVelocidade * aceleracao * rb.mass;
             
-            // Limita força aplicada para evitar picos extremos
             float maxForceMagnitude = 50f;
             if (forcaAplicar.magnitude > maxForceMagnitude)
             {

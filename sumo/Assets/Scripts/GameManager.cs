@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine.UI; // Necessário para controlar o componente Image do soco
 
 public class GameManager : MonoBehaviour
 {
@@ -22,10 +23,20 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI textoMoedasJ1;
     public TextMeshProUGUI textoMoedasJ2;
 
+    [Header("Referências de Cooldown UI (Arraste aqui)")]
+    public TextMeshProUGUI textoCooldownJ1; // Arraste o "Texto_Cooldown_J1"
+    public TextMeshProUGUI textoCooldownJ2; // Arraste o "Texto_Cooldown_J2"
+    
+    [Header("Imagens das Teclas de Cooldown (Arraste aqui)")]
+    public Image imagemTeclaJ1; // Arraste o "Imagem_Tecla_J1" (Soco do J1)
+    public Image imagemTeclaJ2; // Arraste o "Imagem_Tecla_J2" (Soco do J2)
+
+    // Cores para o efeito de liga/desliga do soco
+    private Color corNormal = Color.white; // Claro / Ativo
+    private Color corEscura = new Color(0.25f, 0.25f, 0.25f, 1f); // Escuro / Em Cooldown
+
     private void Awake()
     {
-        // Se já existir um GameManager (do DontDestroyOnLoad) e entrarmos na Gameplay,
-        // precisamos atualizar as referências de UI dele na cena nova!
         if (Instance == null)
         {
             Instance = this;
@@ -33,18 +44,22 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // O GameManager antigo herda as coisas visuais da cena atualizada
             Instance.textoPlacar = this.textoPlacar;
             Instance.painelVitoria = this.painelVitoria;
             Instance.textoVencedor = this.textoVencedor;
-            
-            // ATUALIZAÇÃO: Garante que as novas caixas de texto das moedas da nova rodada sejam encontradas
             Instance.textoMoedasJ1 = this.textoMoedasJ1;
             Instance.textoMoedasJ2 = this.textoMoedasJ2;
+            
+            // Garante as novas referências de Cooldown ao reiniciar o round
+            Instance.textoCooldownJ1 = this.textoCooldownJ1;
+            Instance.textoCooldownJ2 = this.textoCooldownJ2;
+            Instance.imagemTeclaJ1 = this.imagemTeclaJ1;
+            Instance.imagemTeclaJ2 = this.imagemTeclaJ2;
 
             Instance.ConfigurarBotaoVoltar();
             Instance.AtualizarInterfacePlacar();
-            Instance.ResetarInterfaceMoedas(); // Reseta os textos de moedas para 0 no início do round
+            Instance.ResetarInterfaceMoedas(); 
+            Instance.ResetarInterfaceCooldowns(); 
 
             Destroy(gameObject); 
             return;
@@ -56,8 +71,8 @@ public class GameManager : MonoBehaviour
         ConfigurarBotaoVoltar();
         AtualizarInterfacePlacar();
         ResetarInterfaceMoedas();
+        ResetarInterfaceCooldowns();
         
-        // Se o GameManager nasceu no Boot/Menu, ele segue o fluxo normal
         if (SceneManager.GetActiveScene().name == "_Boot")
         {
             CarregarCena("MenuSelecao");
@@ -94,7 +109,6 @@ public class GameManager : MonoBehaviour
 
         if (roundsVitóriaJogador1 >= 2 || roundsVitóriaJogador2 >= 2)
         {
-            // FUNÇÃO DA VITÓRIA: Só aparece aqui quando alguém bate 2 pontos!
             if (painelVitoria != null) painelVitoria.SetActive(true);
 
             if (textoVencedor != null)
@@ -105,7 +119,6 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // Reinicia a cena para o próximo round
             CarregarCena("CenaGameplay");
         }
     }
@@ -118,10 +131,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Atualiza os contadores individuais de moedas dos jogadores na UI.
-    /// Chamado dinamicamente pelas bolinhas ao coletar moedas.
-    /// </summary>
     public void AtualizarMoedasInterface(int idJogador, int totalMoedas)
     {
         if (idJogador == 1 && textoMoedasJ1 != null)
@@ -134,13 +143,51 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Reinicia os textos na tela para o valor padrão no início de cada rodada.
-    /// </summary>
     public void ResetarInterfaceMoedas()
     {
         if (textoMoedasJ1 != null) textoMoedasJ1.text = "J1 Moedas: 0";
         if (textoMoedasJ2 != null) textoMoedasJ2.text = "J2 Moedas: 0";
+    }
+
+    /// <summary>
+    /// Controla visualmente o tempo e a cor do botão de soco de cada jogador.
+    /// </summary>
+    public void AtualizarCooldownInterface(int idJogador, float tempoRestante)
+    {
+        if (idJogador == 1)
+        {
+            if (tempoRestante > 0)
+            {
+                if (textoCooldownJ1 != null) textoCooldownJ1.text = tempoRestante.ToString("F1") + "s";
+                if (imagemTeclaJ1 != null) imagemTeclaJ1.color = corEscura; // Escurece o soco
+            }
+            else
+            {
+                if (textoCooldownJ1 != null) textoCooldownJ1.text = ""; // Remove o texto
+                if (imagemTeclaJ1 != null) imagemTeclaJ1.color = corNormal; // Reacende o soco
+            }
+        }
+        else if (idJogador == 2)
+        {
+            if (tempoRestante > 0)
+            {
+                if (textoCooldownJ2 != null) textoCooldownJ2.text = tempoRestante.ToString("F1") + "s";
+                if (imagemTeclaJ2 != null) imagemTeclaJ2.color = corEscura; // Escurece o soco
+            }
+            else
+            {
+                if (textoCooldownJ2 != null) textoCooldownJ2.text = ""; // Remove o texto
+                if (imagemTeclaJ2 != null) imagemTeclaJ2.color = corNormal; // Reacende o soco
+            }
+        }
+    }
+
+    public void ResetarInterfaceCooldowns()
+    {
+        if (textoCooldownJ1 != null) textoCooldownJ1.text = "";
+        if (textoCooldownJ2 != null) textoCooldownJ2.text = "";
+        if (imagemTeclaJ1 != null) imagemTeclaJ1.color = corNormal;
+        if (imagemTeclaJ2 != null) imagemTeclaJ2.color = corNormal;
     }
 
     public void VoltarParaOMenu()

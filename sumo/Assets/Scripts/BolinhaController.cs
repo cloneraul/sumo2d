@@ -36,6 +36,7 @@ public class BolinhaController : MonoBehaviour
     public float velocidadeMinimaPossivel = 3.0f;
 
     private ControlesSumo controles;
+    private GameManager gameManager; // Referência para o GameManager da cena
 
     private void Awake()
     {
@@ -47,6 +48,9 @@ public class BolinhaController : MonoBehaviour
     {
         // Força detecção contínua de colisão para que os Triggers e Física funcionem perfeitamente
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+        
+        // Busca o GameManager na cena
+        gameManager = FindFirstObjectByType<GameManager>();
         
         // Busca automática pelo inimigo na cena após ambos nascerem
         Invoke(nameof(BuscarInimigoAutomaticamente), 0.1f);
@@ -76,6 +80,9 @@ public class BolinhaController : MonoBehaviour
 
         // Ativa os controles do Input System baseados no ID definido
         AtivarControlesPorID();
+
+        // Notifica o GameManager para resetar/inicializar o texto na UI
+        NotificarUI();
 
         Debug.Log($"[BOLINHA] Jogador {idJogador} inicializado com sucesso usando dados de: {dadosBase.name}");
     }
@@ -183,8 +190,19 @@ public class BolinhaController : MonoBehaviour
         forcaEmpurraoAtual += ganhoForcaPorMoeda;
         velocidadeAtual = Mathf.Max(velocidadeAtual - perdaVelocidadePorMoeda, velocidadeMinimaPossivel);
 
+        // Notifica o GameManager sobre a nova moeda coletada
+        NotificarUI();
+
         Debug.Log($"[MOEDA] Jogador {idJogador} coletou sua {moedasColetadas}ª moeda! " +
                   $"Nova Massa: {rb.mass} | Nova Força Base: {forcaEmpurraoAtual} | Nova Vel: {velocidadeAtual}");
+    }
+
+    private void NotificarUI()
+    {
+        if (gameManager != null)
+        {
+            gameManager.AtualizarMoedasInterface(idJogador, moedasColetadas);
+        }
     }
 
     private void FixedUpdate()

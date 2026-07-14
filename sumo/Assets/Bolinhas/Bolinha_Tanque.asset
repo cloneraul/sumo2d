@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BolinhaData
   nomeBolinha: Tanque
   velocidadeInicial: 3.2
-  forcaEmpurraoBase: 5
+  forcaEmpurraoBase: 3.2
   massaBase: 1.8
   tamanhoEscala: 1.4
   corJogador1: {r: 0.08627451, g: 0.5803922, b: 0.05329247, a: 1}

@@ -18,6 +18,10 @@ public class GameManager : MonoBehaviour
     public GameObject painelVitoria;
     public TextMeshProUGUI textoVencedor;
 
+    [Header("Referências de Moedas UI (Arraste aqui)")]
+    public TextMeshProUGUI textoMoedasJ1;
+    public TextMeshProUGUI textoMoedasJ2;
+
     private void Awake()
     {
         // Se já existir um GameManager (do DontDestroyOnLoad) e entrarmos na Gameplay,
@@ -33,8 +37,14 @@ public class GameManager : MonoBehaviour
             Instance.textoPlacar = this.textoPlacar;
             Instance.painelVitoria = this.painelVitoria;
             Instance.textoVencedor = this.textoVencedor;
+            
+            // ATUALIZAÇÃO: Garante que as novas caixas de texto das moedas da nova rodada sejam encontradas
+            Instance.textoMoedasJ1 = this.textoMoedasJ1;
+            Instance.textoMoedasJ2 = this.textoMoedasJ2;
+
             Instance.ConfigurarBotaoVoltar();
             Instance.AtualizarInterfacePlacar();
+            Instance.ResetarInterfaceMoedas(); // Reseta os textos de moedas para 0 no início do round
 
             Destroy(gameObject); 
             return;
@@ -45,6 +55,7 @@ public class GameManager : MonoBehaviour
     {
         ConfigurarBotaoVoltar();
         AtualizarInterfacePlacar();
+        ResetarInterfaceMoedas();
         
         // Se o GameManager nasceu no Boot/Menu, ele segue o fluxo normal
         if (SceneManager.GetActiveScene().name == "_Boot")
@@ -105,6 +116,31 @@ public class GameManager : MonoBehaviour
         {
             textoPlacar.text = $"J1: {roundsVitóriaJogador1}  |  J2: {roundsVitóriaJogador2}";
         }
+    }
+
+    /// <summary>
+    /// Atualiza os contadores individuais de moedas dos jogadores na UI.
+    /// Chamado dinamicamente pelas bolinhas ao coletar moedas.
+    /// </summary>
+    public void AtualizarMoedasInterface(int idJogador, int totalMoedas)
+    {
+        if (idJogador == 1 && textoMoedasJ1 != null)
+        {
+            textoMoedasJ1.text = $"J1 Moedas: {totalMoedas}";
+        }
+        else if (idJogador == 2 && textoMoedasJ2 != null)
+        {
+            textoMoedasJ2.text = $"J2 Moedas: {totalMoedas}";
+        }
+    }
+
+    /// <summary>
+    /// Reinicia os textos na tela para o valor padrão no início de cada rodada.
+    /// </summary>
+    public void ResetarInterfaceMoedas()
+    {
+        if (textoMoedasJ1 != null) textoMoedasJ1.text = "J1 Moedas: 0";
+        if (textoMoedasJ2 != null) textoMoedasJ2.text = "J2 Moedas: 0";
     }
 
     public void VoltarParaOMenu()

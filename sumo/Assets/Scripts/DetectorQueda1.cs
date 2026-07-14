@@ -3,6 +3,7 @@ using UnityEngine;
 public class DetectorQueda : MonoBehaviour
 {
     private Collider2D meuColisor;
+    private bool jaDetectouQueda = false; // TRAVA DE SEGURANÇA: Garante que só registra a queda uma vez por round
 
     private void Awake()
     {
@@ -13,6 +14,9 @@ public class DetectorQueda : MonoBehaviour
     // Mudamos para Stay2D: o Unity fica checando enquanto a bolinha estiver encostando
     private void OnTriggerStay2D(Collider2D collision)
     {
+        // Se já registramos uma queda neste frame/round, ignora qualquer verificação seguinte
+        if (jaDetectouQueda) return;
+
         // Verifica se quem encostou foi o Jogador 1 ou Jogador 2
         bool ehJogador1 = collision.name.StartsWith("Teste_J1");
         bool ehJogador2 = collision.name.StartsWith("Teste_J2");
@@ -31,7 +35,9 @@ public class DetectorQueda : MonoBehaviour
         // Se o centro entrou na zona, aí sim ela caiu por completo!
         if (ehJogador1)
         {
+            jaDetectouQueda = true; // Ativa a trava para parar de rodar o código e não floodar o console
             Debug.LogWarning("[ZONA DE QUEDA] DETECTADO: Jogador 1 caiu por COMPLETO!");
+            
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.RegistrarPonto(2); // J1 caiu, ponto do J2
@@ -39,7 +45,9 @@ public class DetectorQueda : MonoBehaviour
         }
         else if (ehJogador2)
         {
+            jaDetectouQueda = true; // Ativa a trava para parar de rodar o código e não floodar o console
             Debug.LogWarning("[ZONA DE QUEDA] DETECTADO: Jogador 2 caiu por COMPLETO!");
+            
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.RegistrarPonto(1); // J2 caiu, ponto do J1

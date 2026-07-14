@@ -15,7 +15,7 @@ MonoBehaviour:
   nomeBolinha: Veloz
   velocidadeInicial: 6
   forcaEmpurraoBase: 3
-  massaBase: 0.7
-  tamanhoEscala: 0.8
+  massaBase: 1
+  tamanhoEscala: 1
   corJogador1: {r: 0.69532657, g: 1, b: 0, a: 1}
   corJogador2: {r: 1, g: 0.5851397, b: 0, a: 1}

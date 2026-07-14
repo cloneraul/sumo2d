@@ -15,7 +15,7 @@ MonoBehaviour:
   nomeBolinha: Equilibrada
   velocidadeInicial: 5
   forcaEmpurraoBase: 4
-  massaBase: 1
+  massaBase: 1.3
   tamanhoEscala: 1
   corJogador1: {r: 0, g: 0, b: 1, a: 1}
   corJogador2: {r: 1, g: 0, b: 0, a: 1}
